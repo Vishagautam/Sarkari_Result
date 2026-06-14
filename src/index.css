@@ -1,0 +1,15 @@
+@import "tailwindcss";
+
+@keyframes marquee {
+  0% { transform: translateX(30%); }
+  100% { transform: translateX(-100%); }
+}
+
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+

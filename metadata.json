@@ -1,0 +1,6 @@
+{
+  "name": "Sarkari Result",
+  "description": "A comprehensive portal for Indian Government exam results, admit cards, online forms, and syllabus with an AI-powered career eligibility assistant.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
