@@ -68,10 +68,10 @@ export default function GoogleAd({
   const [isScriptLoaded, setIsScriptLoaded] = useState(false);
   const [showConfigGuide, setShowConfigGuide] = useState(false);
 
-  // Pull publisher client ID from env, or default to placeholder
+  // Pull publisher client ID from env, or default to the user's verified client ID
   const rawClientId = (import.meta as any).env?.VITE_GOOGLE_ADSENSE_CLIENT;
-  const isRealClient = !!rawClientId && rawClientId !== 'ca-pub-XXXXXXXXXXXXXXXX';
-  const clientId = isRealClient ? rawClientId : 'ca-pub-363015242803'; // Elegant default placeholder ID
+  const clientId = rawClientId && rawClientId !== 'ca-pub-XXXXXXXXXXXXXXXX' ? rawClientId : 'ca-pub-8340394030904166';
+  const isRealClient = clientId !== 'ca-pub-XXXXXXXXXXXXXXXX';
 
   // Select a mock ad based on format
   const mockFormat = format === 'rectangle' ? 'rectangle' : format === 'vertical' ? 'vertical' : 'horizontal';
