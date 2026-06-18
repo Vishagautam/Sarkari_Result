@@ -53,7 +53,7 @@ export default function Header({ searchQuery, setSearchQuery, onOpenAiMitra, act
                 SARKARI RESULT
               </h1>
               <p className="text-[10px] sm:text-xs uppercase tracking-widest text-blue-200 font-bold mt-1">
-                www.sarkariresult.com — The Best Portal for Govt Jobs
+                sarkariresultgovt.online — The Best Portal for Govt Jobs
               </p>
             </div>
           </div>

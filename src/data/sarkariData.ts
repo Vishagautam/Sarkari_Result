@@ -3,6 +3,26 @@ import { SarkariNotification } from '../types';
 export const SARKARI_DATA: SarkariNotification[] = [
   // LATEST JOBS
   {
+    id: 'aiims-cre-v-2026',
+    title: 'AIIMS CRE 5th Group B & C Recruitment 2026 Online Form',
+    authority: 'All India Institute of Medical Sciences (AIIMS, Delhi)',
+    type: 'job',
+    postName: 'Group B & C Non-Faculty Various Posts',
+    totalPosts: '3000+',
+    qualification: '10th / 12th Pass / Graduate Degree / Diploma or ITI in relevant trade',
+    ageLimit: '18-35 Years (Post wise with age relaxation as per rules)',
+    applicationStart: '2026-06-01',
+    lastDate: '2026-06-28',
+    fee: 'General / OBC: ₹3000 | SC / ST / EWS: ₹2400 | PWBD: ₹0',
+    status: 'active',
+    admitCardStatus: 'soon',
+    examDate: 'July 2026',
+    salary: 'Level 2 to Level 7 (Pay Matrix)',
+    officialLink: 'https://aiimsexams.ac.in',
+    details: 'All India Institute of Medical Sciences (AIIMS) Delhi invites online applications for the Common Recruitment Examination (CRE-V) for various Group B & C posts across multiple national AIIMS branches.',
+    trending: true
+  },
+  {
     id: 'ssc-chsl-2026',
     title: 'SSC CHSL 10+2 Online Form 2026',
     authority: 'Staff Selection Commission (SSC)',

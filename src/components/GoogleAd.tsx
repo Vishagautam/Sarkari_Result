@@ -107,12 +107,16 @@ export default function GoogleAd({
       setIsScriptLoaded(true);
     }
 
-    // 2. Push to adsbygoogle inside block
+    // 2. Push to adsbygoogle inside block if we have actual unprocessed ins elements in the DOM
     if (isRealClient) {
       try {
-        ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        // Query only ins elements with adsbygoogle class that have not yet had their ad rendered
+        const unprocessedIns = document.querySelectorAll('ins.adsbygoogle:not([data-adsbygoogle-status="done"])');
+        if (unprocessedIns.length > 0) {
+          ((window as any).adsbygoogle = (window as any).adsbygoogle || []).push({});
+        }
       } catch (err) {
-        console.error("AdSense initialization caught error", err);
+        console.warn("AdSense initialization caught error", err);
       }
     }
 

@@ -179,7 +179,7 @@ export default function NotificationDetailModal({ job, onClose, isBookmarked, on
     const stamp = new Date().toISOString().replace(/[-:]/g, '').split('.')[0] + 'Z';
     const startStr = formatDate(eventDate);
     const endStr = formatDateEnd(eventDate);
-    const uid = `${job.id}-${Date.now()}@sarkariresult.com`;
+    const uid = `${job.id}-${Date.now()}@sarkariresultgovt.online`;
 
     // Escape special chars for ICS formatting
     const escapeIcsText = (str: string) => {
