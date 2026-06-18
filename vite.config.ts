@@ -7,7 +7,7 @@ import {defineConfig} from 'vite';
 function generateSitemap() {
   const rootDir = process.cwd();
   const DYNAMIC_DATA_PATH = path.join(rootDir, 'src', 'data', 'synced_sarkari_data.json');
-  const PUBLIC_SITEMAP_PATH = path.join(rootDir, 'public', 'sitemap.xml');
+  const PUBLIC_SITEMAP_PATH = path.join(rootDir, 'public', 'sitemap-static.xml');
   const domain = "https://sarkariresultgovt.online";
 
   console.log("Generating static sitemap.xml via Vite plugin...");
