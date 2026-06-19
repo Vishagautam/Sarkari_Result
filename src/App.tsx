@@ -129,15 +129,51 @@ export default function App() {
     localStorage.setItem('sarkari_bookmarks', JSON.stringify(bookmarkedIds));
   }, [bookmarkedIds]);
 
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const jobId = params.get('job') || params.get('id');
-    if (jobId) {
-      const foundJob = jobs.find(item => item.id === jobId);
-      if (foundJob) {
-        setSelectedJob(foundJob);
+  const handleSelectJob = (job: SarkariNotification | null) => {
+    setSelectedJob(job);
+    if (job) {
+      const targetPath = `/jobs/${encodeURIComponent(job.id)}`;
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({ jobId: job.id }, '', targetPath);
+      }
+    } else {
+      if (window.location.pathname !== '/') {
+        window.history.pushState({}, '', '/');
       }
     }
+  };
+
+  // Handle path-based routing & back/forward navigation
+  useEffect(() => {
+    const handleUrlChange = () => {
+      const match = window.location.pathname.match(/^\/jobs\/([^/]+)/);
+      if (match) {
+        const jobId = decodeURIComponent(match[1]);
+        const foundJob = jobs.find(item => item.id === jobId);
+        if (foundJob) {
+          setSelectedJob(foundJob);
+          return;
+        }
+      }
+      
+      const params = new URLSearchParams(window.location.search);
+      const jobId = params.get('job') || params.get('id');
+      if (jobId) {
+        const foundJob = jobs.find(item => item.id === jobId);
+        if (foundJob) {
+          setSelectedJob(foundJob);
+          window.history.replaceState({}, '', `/jobs/${encodeURIComponent(jobId)}`);
+          return;
+        }
+      }
+
+      setSelectedJob(null);
+    };
+
+    handleUrlChange();
+
+    window.addEventListener('popstate', handleUrlChange);
+    return () => window.removeEventListener('popstate', handleUrlChange);
   }, [jobs]);
 
   // Dynamic Google Schema JSON-LD SEO Injector
@@ -411,7 +447,7 @@ export default function App() {
               {jobs.filter(item => bookmarkedIds.includes(item.id)).map(item => (
                 <button
                   key={item.id}
-                  onClick={() => setSelectedJob(item)}
+                  onClick={() => handleSelectJob(item)}
                   className="px-3.5 py-1.5 bg-white border border-gray-200 text-xs font-black text-gray-800 rounded-xl hover:border-blue-400 active:scale-95 transition-all text-center truncate max-w-[140px]"
                 >
                   {item.title.split(' ')[0]} {item.title.split(' ')[1]}
@@ -435,13 +471,13 @@ export default function App() {
                   aiLoading={aiLoading}
                   aiMatchResults={aiMatchResults}
                   jobs={jobs}
-                  onSelectJob={setSelectedJob}
+                  onSelectJob={handleSelectJob}
                 />
 
                 {/* Trending Hot recruitment widgets */}
                 <TrendingJobs
                   jobs={jobs}
-                  onSelectJob={setSelectedJob}
+                  onSelectJob={handleSelectJob}
                 />
 
                 {/* Error alerts indicator */}
@@ -463,7 +499,7 @@ export default function App() {
                   jobs={jobs}
                   bookmarkedIds={bookmarkedIds}
                   onToggleBookmark={toggleBookmark}
-                  onSelectJob={setSelectedJob}
+                  onSelectJob={handleSelectJob}
                   searchQuery={searchQuery}
                 />
               </>
@@ -473,7 +509,7 @@ export default function App() {
                 jobs={jobs}
                 bookmarkedIds={bookmarkedIds}
                 onToggleBookmark={toggleBookmark}
-                onSelectJob={setSelectedJob}
+                onSelectJob={handleSelectJob}
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
               />
@@ -587,7 +623,7 @@ export default function App() {
       {selectedJob && (
         <NotificationDetailModal
           job={selectedJob}
-          onClose={() => setSelectedJob(null)}
+          onClose={() => handleSelectJob(null)}
           isBookmarked={bookmarkedIds.includes(selectedJob.id)}
           onToggleBookmark={() => {
             const id = selectedJob.id;

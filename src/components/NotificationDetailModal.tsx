@@ -231,7 +231,7 @@ export default function NotificationDetailModal({ job, onClose, isBookmarked, on
   };
 
   const handleShareLink = () => {
-    const directUrl = `${window.location.origin}${window.location.pathname}?id=${job.id}`;
+    const directUrl = `${window.location.origin}/jobs/${encodeURIComponent(job.id)}`;
     
     try {
       if (navigator.clipboard && navigator.clipboard.writeText) {
@@ -272,7 +272,7 @@ export default function NotificationDetailModal({ job, onClose, isBookmarked, on
   };
 
   const getWhatsAppShareLink = () => {
-    const directUrl = `${window.location.origin}${window.location.pathname}?id=${job.id}`;
+    const directUrl = `${window.location.origin}/jobs/${encodeURIComponent(job.id)}`;
     
     let message = `📢 *Govt Job Update: ${job.title}*\n\n`;
     message += `🏛️ *Authority:* ${job.authority}\n`;

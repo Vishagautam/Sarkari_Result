@@ -680,7 +680,7 @@ app.get("/sitemap.xml", async (req, res) => {
       if (!item || !item.id) continue;
       const safeId = encodeURIComponent(item.id);
       xml += `  <url>\n`;
-      xml += `    <loc>${domain}/?id=${safeId}</loc>\n`;
+      xml += `    <loc>${domain}/jobs/${safeId}</loc>\n`;
       xml += `    <changefreq>weekly</changefreq>\n`;
       xml += `    <priority>0.8</priority>\n`;
       xml += `  </url>\n`;
