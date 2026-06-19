@@ -1,0 +1,8 @@
+User-agent: Google-Extended
+Disallow: /
+
+User-agent: *
+Content-Signal: search=yes,ai-train=no
+Allow: /
+
+Sitemap: https://sarkariresultgovt.online/sitemap.xml
