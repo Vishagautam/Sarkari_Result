@@ -137,8 +137,24 @@ export default function App() {
         window.history.pushState({ jobId: job.id }, '', targetPath);
       }
     } else {
+      const homePath = activeTab === 'home' ? '/' : `/category/${activeTab}`;
+      if (window.location.pathname !== homePath) {
+        window.history.pushState({}, '', homePath);
+      }
+    }
+  };
+
+  const handleTabChange = (tab: string) => {
+    setActiveTab(tab);
+    setSelectedJob(null);
+    if (tab === 'home') {
       if (window.location.pathname !== '/') {
         window.history.pushState({}, '', '/');
+      }
+    } else {
+      const targetPath = `/category/${tab}`;
+      if (window.location.pathname !== targetPath) {
+        window.history.pushState({}, '', targetPath);
       }
     }
   };
@@ -146,6 +162,7 @@ export default function App() {
   // Handle path-based routing & back/forward navigation
   useEffect(() => {
     const handleUrlChange = () => {
+      // 1. Check for single jobs route
       const match = window.location.pathname.match(/^\/jobs\/([^/]+)/);
       if (match) {
         const jobId = decodeURIComponent(match[1]);
@@ -156,6 +173,16 @@ export default function App() {
         }
       }
       
+      // 2. Check for category route
+      const catMatch = window.location.pathname.match(/^\/category\/([^/]+)/);
+      if (catMatch) {
+        const cat = catMatch[1];
+        setActiveTab(cat);
+        setSelectedJob(null);
+        return;
+      }
+      
+      // 3. Fallback query parameter extraction (for SEO transition)
       const params = new URLSearchParams(window.location.search);
       const jobId = params.get('job') || params.get('id');
       if (jobId) {
@@ -167,7 +194,9 @@ export default function App() {
         }
       }
 
+      // 4. Default state
       setSelectedJob(null);
+      setActiveTab('home');
     };
 
     handleUrlChange();
@@ -181,6 +210,9 @@ export default function App() {
     // 1. Dynamic Document Title update
     if (selectedJob) {
       document.title = `${selectedJob.title} - Sarkari Result 2026 | Eligibility, Salary, Apply Link`;
+    } else if (activeTab !== 'home') {
+      const formattedTab = activeTab.charAt(0).toUpperCase() + activeTab.slice(1);
+      document.title = `Sarkari Result 2026 - ${formattedTab} | Latest Govt Jobs & Vacancies`;
     } else {
       document.title = "Sarkari Result 2026 - State & Central Govt Job Vacancies, Admit Card & Exams";
     }
@@ -314,10 +346,75 @@ export default function App() {
       ]
     };
 
-    // Combine both schemas to let Google and AI engines digest them easily
+    // Google Sitelinks Searchbox WebSite Schema
+    const websiteSchema = {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Sarkari Result Govt",
+      "alternateName": ["Sarkari Result", "Sarkari Result Website", "Sarkari Job", "Sarkari Result Govt Jobs"],
+      "url": "https://sarkariresultgovt.online/",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://sarkariresultgovt.online/?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    };
+
+    // SiteNavigationElement lists to promote instant sitelinks under the main ranking
+    const navigationSchema = {
+      "@context": "https://schema.org",
+      "@type": "ItemList",
+      "name": "Sarkari Result Categories",
+      "description": "Primary navigation channels for active government job listings, results, admit cards, and answers",
+      "itemListElement": [
+        {
+          "@type": "SiteNavigationElement",
+          "position": 1,
+          "name": "Sarkari Result Home",
+          "url": "https://sarkariresultgovt.online/"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 2,
+          "name": "Latest Jobs",
+          "url": "https://sarkariresultgovt.online/category/jobs"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 3,
+          "name": "Results",
+          "url": "https://sarkariresultgovt.online/category/results"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 4,
+          "name": "Admit Card",
+          "url": "https://sarkariresultgovt.online/category/admit"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 5,
+          "name": "Answer Key",
+          "url": "https://sarkariresultgovt.online/category/answer-keys"
+        },
+        {
+          "@type": "SiteNavigationElement",
+          "position": 6,
+          "name": "Syllabus Guide",
+          "url": "https://sarkariresultgovt.online/category/syllabus"
+        }
+      ]
+    };
+
+    // Combine all schemas for ultimate indexing
     const combinedSchema = [
       ...schemaData,
-      faqSchema
+      faqSchema,
+      websiteSchema,
+      navigationSchema
     ];
 
     const script = document.createElement('script');
@@ -332,7 +429,7 @@ export default function App() {
         tag.remove();
       }
     };
-  }, [selectedJob, jobs]);
+  }, [selectedJob, jobs, activeTab]);
 
   const toggleBookmark = (id: string, e: React.MouseEvent) => {
     e.stopPropagation();
@@ -407,7 +504,7 @@ export default function App() {
         setSearchQuery={setSearchQuery}
         onOpenAiMitra={() => setShowAiMitra(true)}
         activeTab={activeTab}
-        onTabChange={setActiveTab}
+        onTabChange={handleTabChange}
       />
 
       <main className="flex-1 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full">
