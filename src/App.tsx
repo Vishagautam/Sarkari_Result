@@ -176,8 +176,28 @@ export default function App() {
     return () => window.removeEventListener('popstate', handleUrlChange);
   }, [jobs]);
 
-  // Dynamic Google Schema JSON-LD SEO Injector
+  // Dynamic Google Schema JSON-LD SEO/AEO & Document Title/Meta Metadata Injector
   useEffect(() => {
+    // 1. Dynamic Document Title update
+    if (selectedJob) {
+      document.title = `${selectedJob.title} - Sarkari Result 2026 | Eligibility, Salary, Apply Link`;
+    } else {
+      document.title = "Sarkari Result 2026 - State & Central Govt Job Vacancies, Admit Card & Exams";
+    }
+
+    // 2. Dynamic Meta Description update
+    let metaDesc = document.querySelector('meta[name="description"]');
+    if (!metaDesc) {
+      metaDesc = document.createElement('meta');
+      metaDesc.setAttribute('name', 'description');
+      document.head.appendChild(metaDesc);
+    }
+    if (selectedJob) {
+      metaDesc.setAttribute('content', `Apply online for ${selectedJob.title} vacancy released by ${selectedJob.authority}. Check educational qualification eligibility, pay scale salary, age limit, selection phase rules, and key dates.`);
+    } else {
+      metaDesc.setAttribute('content', "Sarkari Result 2026 - Access direct links for active Government of India (Central & State Level) recruitment notices, exam result keys, admit cards, answer keys, and dynamic online application guidelines.");
+    }
+
     // Clean up old script tags first
     const existing = document.getElementById('sarkari-result-json-ld');
     if (existing) {
@@ -188,8 +208,6 @@ export default function App() {
     const targets = selectedJob 
       ? [selectedJob] 
       : jobs.filter(j => j.type === 'job' && j.status === 'active').slice(0, 10);
-
-    if (targets.length === 0) return;
 
     const schemaData = targets.map(job => {
       // Intelligently parse salary figures from strings (e.g. "Level-10 Pay Scale" or "Rs. 56,100 - 1,77,500/-")
@@ -256,10 +274,56 @@ export default function App() {
       };
     });
 
+    // Structure dynamic FAQ Schema for AEO (Answer Engine Optimization)
+    const faqSchema = {
+      "@context": "https://schema.org",
+      "@type": "FAQPage",
+      "mainEntity": [
+        {
+          "@type": "Question",
+          "name": "How to fix spelling or DOB errors in submitted forms?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Most recruitment boards (SSC, UPSC, RRB) open a dedicated 'Correction Window' 3-5 days after online registration closes. If mistakes persist, email the official support team with your registration ID immediately. Do not submit double registrations, as they may lead to automatic disqualification."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Money debited but payment status is still pending?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Do not make a secondary payment immediately! Server-side synchronization often takes 24 to 48 hours. Log out and log back in to review the status, or check the bank verification status using your bank transaction reference ID in the recruitment portal."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "Is e-Aadhaar card accepted for Document Verification?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "Yes, printed e-Aadhaar with a verified QR code is fully accepted at document verification centers. However, your name, parentage, and Date of Birth (DOB) must match your Matriculation (Class 10th) mark sheet and official certificate exactly."
+          }
+        },
+        {
+          "@type": "Question",
+          "name": "What is the format validity for OBC-NCL/EWS certificates?",
+          "acceptedAnswer": {
+            "@type": "Answer",
+            "text": "OBC (Non-Creamy Layer) and EWS certificates must be validated for the current financial year and must adhere to the prescribed Central Government format (often provided in the notification annexures) rather than simple state formats."
+          }
+        }
+      ]
+    };
+
+    // Combine both schemas to let Google and AI engines digest them easily
+    const combinedSchema = [
+      ...schemaData,
+      faqSchema
+    ];
+
     const script = document.createElement('script');
     script.id = 'sarkari-result-json-ld';
     script.type = 'application/ld+json';
-    script.innerHTML = JSON.stringify(schemaData.length === 1 ? schemaData[0] : schemaData, null, 2);
+    script.innerHTML = JSON.stringify(combinedSchema, null, 2);
     document.head.appendChild(script);
 
     return () => {
@@ -502,6 +566,71 @@ export default function App() {
                   onSelectJob={handleSelectJob}
                   searchQuery={searchQuery}
                 />
+
+                {/* Ultimate SEO & AEO Keyword-Rich Informational Guide Section */}
+                <section className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-8 shadow-xs space-y-6 mt-8">
+                  <div className="border-b border-slate-100 pb-4">
+                    <h2 className="text-xl sm:text-2xl font-black text-[#1a237e] tracking-tight">
+                      Sarkari Result 2026 — Latest Government Jobs, Admit Cards & Exams
+                    </h2>
+                    <p className="text-xs text-slate-500 font-bold mt-1.5 uppercase tracking-wider">
+                      sarkariresultgovt.online — Your Trusted Sarkari Result Website
+                    </p>
+                  </div>
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-xs text-slate-600 leading-relaxed text-left">
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-extrabold text-[#d32f2f] text-sm mb-1.5">
+                          What is Sarkari Result and How to Use It?
+                        </h3>
+                        <p>
+                          Welcome to the ultimate online hub for finding every active <strong>sarkari job</strong> and competitive recruitment notices. <strong>Sarkari Result</strong> is a highly trusted name for millions of Indian job seekers, providing direct, curated, and 100% verified links for state and central level examinations. Our official <strong>sarkari result website</strong> aims to simplify your path to secure <strong>government job</strong> placements across UPSC, SSC, Railways, Banking, Defense, and state PSC sectors.
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-[#d32f2f] text-sm mb-1.5">
+                          How We Help You Find the Right Sarkari Job
+                        </h3>
+                        <p>
+                          Looking for active <strong>sarkari</strong> updates? Our live synchronizer parses verified portals instantly, saving you from navigating multiple disorganized websites. Whether you are seeking a central <strong>indian job</strong> or a regional state recruitment notification, we provide clear summaries of online registration links, specific qualifying criteria, eligibility age limits, pay scale structures, and written examination centers.
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="space-y-4">
+                      <div>
+                        <h3 className="font-extrabold text-[#d32f2f] text-sm mb-1.5">
+                          Step-by-Step Guide to Apply for Government Jobs
+                        </h3>
+                        <p>
+                          To secure your desired vacancy on our <strong>sarkari result job</strong> portal, simply choose an active post from the list, review the comprehensive eligibility requirements, and click the direct apply link. Always ensure you have your Matriculation mark sheets, valid identification proofs (like e-Aadhaar cards), passport-sized photographs, and qualifying degrees handy. Pay the registration fees within the specified timeline to successfully finalize your candidature.
+                        </p>
+                      </div>
+                      <div>
+                        <h3 className="font-extrabold text-[#d32f2f] text-sm mb-1.5">
+                          Instant Access to Admit Cards & Answer Keys
+                        </h3>
+                        <p>
+                          Our <strong>sarkari result govt</strong> platform updates the moment official boards release written exam admit cards or provisional answer keys. Never miss a critical deadline — bookmark this page or use our integrated <strong>AI Career Advisor Mitra</strong> to ask custom queries regarding exam patterns, syllabi changes, official correction window schedules, or selection standards.
+                        </p>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* High Density Key-Term Pill Bar for Search Crawlers */}
+                  <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 flex flex-wrap gap-2 items-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400 tracking-wider mr-2">Quick Searches:</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari result</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari result website</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari job</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">government job</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">indian job</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari result job</span>
+                    <span className="bg-white border border-slate-200 text-slate-600 font-extrabold text-[11px] px-2.5 py-1 rounded-lg">sarkari result govt</span>
+                  </div>
+                </section>
               </>
             ) : (
               <PageViews
