@@ -696,6 +696,241 @@ app.get("/sitemap.xml", async (req, res) => {
   }
 });
 
+// Pre-render HTML for high-performance SEO/AEO & AdSense policy compliance
+async function handleSsrLite(req: express.Request, res: express.Response, indexHtmlContent: string) {
+  try {
+    const list = await getNotifications();
+    const urlPath = req.path;
+    
+    let title = "Sarkari Result 2026 - State & Central Govt Job Vacancies, Admit Card & Exams";
+    let metaDescription = "Sarkari Result 2026 - Find latest sarkari result website updates, sarkari job, sarkari result job vacancies, admit cards, exam results keys, and government job notifications in India.";
+    let metaKeywords = "sarkari result, sarkari result website, sarkari job, sarkari, government job, indian job, sarkari result job, sarkari result govt, sarkari exam, admit card, answer key, online form 2026";
+    let canonicalUrl = `https://sarkariresultgovt.online${urlPath}`;
+    
+    let injectedHtml = "";
+
+    // 1. Single Job Details Route: /jobs/:id
+    const jobMatch = urlPath.match(/^\/jobs\/([^/]+)/);
+    if (jobMatch) {
+      const jobId = decodeURIComponent(jobMatch[1]);
+      const job = list.find((item: any) => item && item.id === jobId);
+      if (job) {
+        title = `${job.title} - Sarkari Result 2026 | Eligibility, Salary, Apply Link`;
+        metaDescription = `Apply online for ${job.title} vacancy released by ${job.authority}. Check educational qualification eligibility, pay scale salary, age limit, selection phase rules, and key dates.`;
+        metaKeywords = `${job.title.toLowerCase()}, ${job.authority.toLowerCase()} recruitment, sarkari result, sarkari job, government job eligibility`;
+        
+        // Build beautiful semantic HTML for crawler
+        injectedHtml = `
+          <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 800px; margin: 0 auto; padding: 24px; color: #1e293b; line-height: 1.6;">
+            <header style="border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 24px;">
+              <a href="/" style="color: #1a237e; text-decoration: none; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">← Back to Sarkari Result Home</a>
+              <h1 style="color: #1a237e; font-size: 28px; font-weight: 900; margin: 12px 0 6px 0; letter-spacing: -0.025em;">${job.title}</h1>
+              <p style="margin: 0; font-size: 14px; color: #64748b; font-weight: 600;">Authority: <span style="color: #d32f2f;">${job.authority}</span> | Category: ${job.type.toUpperCase()}</p>
+            </header>
+            
+            <main style="display: grid; gap: 24px;">
+              <section style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                <h2 style="color: #d32f2f; font-size: 18px; font-weight: 800; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Recruitment Information Overview</h2>
+                <table style="width: 100%; border-collapse: collapse; font-size: 13px; text-align: left;">
+                  <tbody>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700; width: 35%;">Authority</th><td style="padding: 8px 0;">${job.authority}</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Job Name / Post</th><td style="padding: 8px 0;">${job.title}</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Status</th><td style="padding: 8px 0;"><span style="background: #def7ec; color: #03543f; padding: 2px 8px; border-radius: 9999px; font-weight: 800; font-size: 10px;">${job.status.toUpperCase()}</span></td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Application Start</th><td style="padding: 8px 0;">${job.applicationStart || "Check notification"}</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Last Date to Apply</th><td style="padding: 8px 0; font-weight: 800; color: #b91c1c;">${job.lastDate || "Apply as soon as possible"}</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Salary Pay Scale</th><td style="padding: 8px 0; font-weight: 700; color: #1e3a8a;">${job.salary || "As per official standards"}</td></tr>
+                    <tr style="border-bottom: 1px solid #f1f5f9;"><th style="padding: 8px 0; font-weight: 700;">Eligibility Qualification</th><td style="padding: 8px 0; font-weight: 700;">${job.qualification || "Check recruitment PDF"}</td></tr>
+                    <tr><th style="padding: 8px 0; font-weight: 700;">Application Fee</th><td style="padding: 8px 0;">${job.fee || "Gen/OBC: ₹100 | SC/ST: Exempted"}</td></tr>
+                  </tbody>
+                </table>
+              </section>
+
+              ${job.details ? `
+              <section style="background: #ffffff; border: 1px solid #e2e8f0; padding: 20px; border-radius: 12px;">
+                <h2 style="color: #1e3a8a; font-size: 18px; font-weight: 800; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Detailed Notification & Vacancy Specifications</h2>
+                <div style="font-size: 14px; white-space: pre-line; color: #334155;">${job.details}</div>
+              </section>
+              ` : ""}
+
+              <section style="text-align: center; margin-top: 12px;">
+                <a href="${job.officialLink}" target="_blank" rel="noopener noreferrer" style="display: inline-block; background: #d32f2f; color: white; text-decoration: none; font-weight: 900; font-size: 15px; padding: 14px 28px; border-radius: 8px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);">
+                  Click Here to Apply Online (Official Link)
+                </a>
+              </section>
+            </main>
+            
+            <footer style="margin-top: 48px; border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">
+              © 2026 Sarkari Result • 100% Verified Central & State Govt Recruitment News
+            </footer>
+          </div>
+        `;
+      }
+    }
+    
+    // 2. Category Route: /category/:cat
+    const catMatch = urlPath.match(/^\/category\/([^/]+)/);
+    if (catMatch && !injectedHtml) {
+      const cat = catMatch[1];
+      const formattedCat = cat.charAt(0).toUpperCase() + cat.slice(1);
+      title = `Sarkari Result 2026 - ${formattedCat} | Latest Govt Jobs & Vacancies`;
+      metaDescription = `Sarkari Result 2026 ${formattedCat} listings. Find verified, active state and central level ${formattedCat} alerts, exam forms, qualifications, and deadlines.`;
+      metaKeywords = `sarkari result ${cat}, latest ${cat}, government jobs ${cat}, central govt jobs`;
+      
+      const filtered = list.filter((item: any) => item && (item.type === cat || (cat === "jobs" && item.type === "job")));
+      
+      let tableRows = "";
+      if (filtered.length > 0) {
+        for (const job of filtered.slice(0, 30)) {
+          tableRows += `
+            <tr style="border-bottom: 1px solid #e2e8f0; font-size: 13.5px;">
+              <td style="padding: 12px 8px; font-weight: 800; color: #1a237e;"><a href="/jobs/${encodeURIComponent(job.id)}" style="color: #1a237e; text-decoration: none;">${job.title}</a></td>
+              <td style="padding: 12px 8px; font-weight: 700; color: #d32f2f;">${job.authority}</td>
+              <td style="padding: 12px 8px; font-weight: 800; color: #b91c1c;">${job.lastDate || "Apply Live"}</td>
+              <td style="padding: 12px 8px; text-align: center;"><a href="/jobs/${encodeURIComponent(job.id)}" style="display: inline-block; background: #1a237e; color: white; text-decoration: none; padding: 4px 10px; border-radius: 6px; font-size: 11px; font-weight: 800;">View details</a></td>
+            </tr>
+          `;
+        }
+      } else {
+        tableRows = `<tr><td colspan="4" style="padding: 24px; text-align: center; color: #64748b; font-weight: 700;">No active postings found for this category at the moment. Please check back shortly!</td></tr>`;
+      }
+
+      injectedHtml = `
+        <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 900px; margin: 0 auto; padding: 24px; color: #1e293b; line-height: 1.6;">
+          <header style="border-bottom: 2px solid #e2e8f0; padding-bottom: 16px; margin-bottom: 24px;">
+            <a href="/" style="color: #1a237e; text-decoration: none; font-weight: 800; font-size: 14px; text-transform: uppercase; letter-spacing: 1px;">← Sarkari Result Home</a>
+            <h1 style="color: #1a237e; font-size: 26px; font-weight: 900; margin: 12px 0 6px 0; letter-spacing: -0.025em;">Latest ${formattedCat} — Sarkari Result 2026</h1>
+            <p style="margin: 0; font-size: 13.5px; color: #64748b; font-weight: 600;">Verified Government Opportunities, Exam Status Keys & Admit Cards for India</p>
+          </header>
+          
+          <main>
+            <div style="overflow-x: auto; border: 1px solid #e2e8f0; border-radius: 12px; box-shadow: 0 1px 3px 0 rgba(0,0,0,0.05);">
+              <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                <thead>
+                  <tr style="background: #f8fafc; border-bottom: 2px solid #e2e8f0; font-size: 12px; text-transform: uppercase; letter-spacing: 0.5px; color: #475569;">
+                    <th style="padding: 12px 8px; font-weight: 800;">Opportunity Details</th>
+                    <th style="padding: 12px 8px; font-weight: 800;">Authority</th>
+                    <th style="padding: 12px 8px; font-weight: 800;">Last Date</th>
+                    <th style="padding: 12px 8px; text-align: center; font-weight: 800;">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${tableRows}
+                </tbody>
+              </table>
+            </div>
+          </main>
+          
+          <footer style="margin-top: 48px; border-top: 1px solid #e2e8f0; padding-top: 16px; text-align: center; font-size: 11px; color: #94a3b8; font-weight: 600; text-transform: uppercase;">
+            © 2026 Sarkari Result • Official Sarkari Job Portal Info
+          </footer>
+        </div>
+      `;
+    }
+
+    // 3. Fallback to Home page content
+    if (!injectedHtml) {
+      let activeJobsRows = "";
+      const jobsOnly = list.filter((item: any) => item && (item.type === 'job' || item.type === 'admission')).slice(0, 15);
+      for (const item of jobsOnly) {
+        activeJobsRows += `
+          <tr style="border-bottom: 1px solid #f1f5f9; font-size: 13px;">
+            <td style="padding: 8px; font-weight: 800; color: #1a237e;"><a href="/jobs/${encodeURIComponent(item.id)}" style="color: #1a237e; text-decoration: none;">${item.title}</a></td>
+            <td style="padding: 8px; font-weight: 700; color: #475569;">${item.authority}</td>
+            <td style="padding: 8px; font-weight: 800; color: #b91c1c;">${item.lastDate || "Apply Now"}</td>
+          </tr>
+        `;
+      }
+
+      injectedHtml = `
+        <div style="font-family: system-ui, -apple-system, sans-serif; max-width: 1000px; margin: 0 auto; padding: 24px; color: #1e293b; line-height: 1.6;">
+          <header style="text-align: center; border-bottom: 4px solid #1a237e; padding-bottom: 20px; margin-bottom: 28px;">
+            <h1 style="color: #1a237e; font-size: 36px; font-weight: 900; margin: 0; letter-spacing: -0.03em;">SARKARI RESULT 2026</h1>
+            <p style="color: #d32f2f; font-weight: 800; font-size: 14px; text-transform: uppercase; margin: 6px 0 0 0; letter-spacing: 1.5px;">www.sarkariresultgovt.online — Indian Govt Vacancy Indexer</p>
+          </header>
+          
+          <main style="display: grid; gap: 28px; grid-template-columns: 1fr;">
+            <div>
+              <section style="background: #ffffff; border: 2px solid #1a237e; border-radius: 12px; overflow: hidden; margin-bottom: 28px;">
+                <h2 style="background: #1a237e; color: white; margin: 0; padding: 12px 16px; font-size: 18px; font-weight: 900; text-transform: uppercase; letter-spacing: 0.5px;">🔥 Top Latest Active Opportunities</h2>
+                <table style="width: 100%; border-collapse: collapse; text-align: left;">
+                  <thead>
+                    <tr style="background: #f8fafc; border-bottom: 1px solid #e2e8f0; font-size: 11px; text-transform: uppercase; color: #64748b; font-weight: 800;">
+                      <th style="padding: 8px;">Post Title</th>
+                      <th style="padding: 8px;">Recruitment Board</th>
+                      <th style="padding: 8px;">Last Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    ${activeJobsRows}
+                  </tbody>
+                </table>
+              </section>
+
+              <!-- SEO/AEO Rich Text Guide -->
+              <section style="background: #f8fafc; border: 1px solid #e2e8f0; padding: 24px; border-radius: 12px; font-size: 13.5px; color: #334155; margin-bottom: 28px;">
+                <h2 style="color: #1a237e; font-size: 20px; font-weight: 900; margin-top: 0; margin-bottom: 12px; border-bottom: 1px solid #e2e8f0; padding-bottom: 8px;">Sarkari Result 2026 — Latest Government Jobs, Admit Cards & Exams</h2>
+                <p>Welcome to <strong>sarkariresultgovt.online</strong>, your premier verified resource for Indian <strong>government job</strong> notices, written test admit cards, results notifications, answer keys, and dynamic qualification guidance. We list 100% authenticated vacancies across Central ministries and state government bureaus.</p>
+                <p style="margin-top: 12px;">Our official <strong>sarkari result website</strong> synchronizes live opportunities across SSC, UPSC, Civil Services, Banking, Railway RRB, and Police department recruitments. Aspirants can instantly look up educational qualification details, age brackets, payment methods, and step-by-step registration links.</p>
+              </section>
+            </div>
+          </main>
+          
+          <footer style="border-top: 1px solid #e2e8f0; padding-top: 20px; margin-top: 40px; text-align: center; font-size: 11px; color: #64748b; font-weight: bold; text-transform: uppercase;">
+            © 2026 Sarkari Result • Built with Antigravity AI Engine
+          </footer>
+        </div>
+      `;
+    }
+
+    // Replace Metadata dynamically in the HTML content
+    let finalHtml = indexHtmlContent;
+
+    // 1. Replace Title tag
+    finalHtml = finalHtml.replace(/<title>[\s\S]*?<\/title>/gi, `<title>${title}</title>`);
+
+    // 2. Replace or Inject Meta Description
+    const descTagRegex = /<meta\s+name="description"\s+content="[^"]*"\s*\/?>/gi;
+    const hasDescTag = descTagRegex.test(finalHtml);
+    if (hasDescTag) {
+      finalHtml = finalHtml.replace(descTagRegex, `<meta name="description" content="${metaDescription}" />`);
+    } else {
+      finalHtml = finalHtml.replace(/<\/head>/i, `  <meta name="description" content="${metaDescription}" />\n  </head>`);
+    }
+
+    // 3. Replace or Inject Meta Keywords
+    const keywordsTagRegex = /<meta\s+name="keywords"\s+content="[^"]*"\s*\/?>/gi;
+    const hasKeywordsTag = keywordsTagRegex.test(finalHtml);
+    if (hasKeywordsTag) {
+      finalHtml = finalHtml.replace(keywordsTagRegex, `<meta name="keywords" content="${metaKeywords}" />`);
+    } else {
+      finalHtml = finalHtml.replace(/<\/head>/i, `  <meta name="keywords" content="${metaKeywords}" />\n  </head>`);
+    }
+
+    // 4. Inject canonical link
+    const canonicalRegex = /<link\s+rel="canonical"\s+href="[^"]*"\s*\/?>/gi;
+    const hasCanonical = canonicalRegex.test(finalHtml);
+    if (hasCanonical) {
+      finalHtml = finalHtml.replace(canonicalRegex, `<link rel="canonical" href="${canonicalUrl}" />`);
+    } else {
+      finalHtml = finalHtml.replace(/<\/head>/i, `  <link rel="canonical" href="${canonicalUrl}" />\n  </head>`);
+    }
+
+    // 5. Inject Pre-Rendered content inside <div id="root"></div>
+    const rootBlock = `<div id="root">`;
+    const rootBlockIndex = finalHtml.indexOf(rootBlock);
+    if (rootBlockIndex !== -1) {
+      const rootEndIndex = rootBlockIndex + rootBlock.length;
+      finalHtml = finalHtml.slice(0, rootEndIndex) + `\n      ${injectedHtml}\n    ` + finalHtml.slice(rootEndIndex);
+    }
+
+    res.status(200).send(finalHtml);
+
+  } catch (err: any) {
+    console.error("SSR-Lite generation error:", err);
+    res.status(200).send(indexHtmlContent); // Safe graceful degradation to dynamic app bundle if SSR fails
+  }
+}
+
 // Vite Middleware & Static Resource routing
 async function initServer() {
   if (process.env.NODE_ENV !== "production") {
@@ -709,8 +944,13 @@ async function initServer() {
     console.log("Serving static production assets from /dist...");
     const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+    app.get("*", async (req, res) => {
+      try {
+        const indexHtmlContent = await fs.readFile(path.join(distPath, "index.html"), "utf-8");
+        await handleSsrLite(req, res, indexHtmlContent);
+      } catch (err) {
+        res.sendFile(path.join(distPath, "index.html"));
+      }
     });
   }
 

@@ -1,7 +1,6 @@
 import React from 'react';
 import { SarkariNotification } from '../types';
 import { X, Calendar, DollarSign, Award, ArrowUpRight, HelpCircle, Briefcase, Bookmark, FileText, Hourglass, Timer, AlertTriangle, Download, Printer, ZoomIn, ZoomOut, Search, ChevronLeft, ChevronRight, Check, CalendarPlus, Share2, MessageCircle } from 'lucide-react';
-import GoogleAd from './GoogleAd';
 
 interface NotificationDetailModalProps {
   job: SarkariNotification | null;
@@ -478,9 +477,6 @@ export default function NotificationDetailModal({ job, onClose, isBookmarked, on
               </div>
             </div>
           )}
-
-          {/* Sleek In-Line Google Ads Zone */}
-          <GoogleAd format="horizontal" slot="ad-modal-internal-102" className="my-2" />
 
           {/* Safety Disclaimer */}
           <div className="p-3 bg-amber-950/30 border border-amber-900/50 rounded-xl text-[11px] text-amber-200 leading-relaxed flex items-start gap-2 font-medium">
