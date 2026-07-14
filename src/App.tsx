@@ -10,7 +10,7 @@ import SidebarFaq from './components/SidebarFaq';
 import GoogleAd from './components/GoogleAd';
 import { SARKARI_DATA } from './data/sarkariData';
 import { EligibilityProfile, SarkariNotification } from './types';
-import { Bookmark, Sparkles, AlertCircle, HelpCircle, GraduationCap, Calendar, ShieldCheck, RefreshCw, CheckCircle, Wifi, Globe } from 'lucide-react';
+import { Bookmark, Sparkles, AlertCircle, HelpCircle, GraduationCap, Calendar, ShieldCheck, RefreshCw, CheckCircle, Wifi, Globe, Send, Instagram, Facebook, Youtube, Smartphone, Award } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -52,7 +52,31 @@ export default function App() {
   };
 
   useEffect(() => {
-    loadNotifications();
+    const initialize = async () => {
+      await loadNotifications();
+      // Auto-trigger sync on mount to keep data fresh without manual button
+      try {
+        const response = await fetch('/api/sync', { method: 'POST' });
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            await loadNotifications();
+            const info = {
+              method: result.method,
+              addedCount: result.addedCount,
+              updatedCount: result.updatedCount,
+              totalCount: result.totalCount,
+              lastUpdated: result.lastUpdated
+            };
+            setLastSyncedInfo(info);
+            localStorage.setItem('sarkari_sync_info', JSON.stringify(info));
+          }
+        }
+      } catch (err) {
+        console.error("Auto sync on load failed:", err);
+      }
+    };
+    initialize();
   }, []);
 
   const triggerSync = async () => {
@@ -78,7 +102,7 @@ export default function App() {
         localStorage.setItem('sarkari_sync_info', JSON.stringify(info));
         setSyncStatus({
           type: 'success',
-          message: `Deep-sync finished! Synced ${result.syncedItemsCount} postings (${result.addedCount} newly added, ${result.updatedCount} updated in-place) from sarkariresultgovt.online.`
+          message: `Deep-sync finished! Synced ${result.syncedItemsCount} postings (${result.addedCount} newly added, ${result.updatedCount} updated in-place) from sarkariresult.com.cm.`
         });
       } else {
         throw new Error(result.message || "Failed to finalize file transaction.");
@@ -512,85 +536,7 @@ export default function App() {
         {/* Top Horizontal Header Leaderboard Google Ads Slot */}
         <GoogleAd format="horizontal" slot="ad-header-leaderboard" className="mb-6" />
 
-        {/* Live Synchronization Dashboard */}
-        <div className="mb-8 p-6 bg-white border border-slate-200 rounded-2xl shadow-xs relative overflow-hidden">
-          <div className="absolute top-0 right-0 transform translate-x-8 -translate-y-8 w-32 h-32 bg-blue-500/5 rounded-full"></div>
-          
-          <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative z-10">
-            <div className="space-y-1 md:flex-1">
-              <div className="flex items-center gap-2">
-                <span className="flex h-2.5 w-2.5 relative">
-                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-500"></span>
-                </span>
-                <span className="text-[10px] font-extrabold uppercase text-emerald-700 tracking-wider">Live Synchronization Portal Active</span>
-              </div>
-              <h3 className="text-lg font-black text-slate-900 tracking-tight flex items-center gap-2">
-                <Globe className="h-5 w-5 text-[#1a237e]" /> Sync with sarkariresultgovt.online
-              </h3>
-              <p className="text-xs text-slate-500 font-medium max-w-2xl leading-relaxed">
-                Stay up to date with live Indian Government examinations, competitive results, admit cards, or job application notices. Core synchronizer merges listings automatically or instantly on press.
-              </p>
-              
-              {lastSyncedInfo ? (
-                <div className="flex flex-wrap items-center gap-x-4 gap-y-1.5 mt-3 text-[11px] font-bold text-slate-600 bg-slate-50 border border-slate-100 rounded-xl px-3.5 py-1.5 w-fit">
-                  <span className="flex items-center gap-1">
-                    <Wifi className="h-3.5 w-3.5 text-slate-400" />
-                    Last Synced: <strong className="text-slate-800">{new Date(lastSyncedInfo.lastUpdated).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' })}, {new Date(lastSyncedInfo.lastUpdated).toLocaleDateString()}</strong>
-                  </span>
-                  <span className="text-slate-300">•</span>
-                  <span>Total Active: <strong className="text-[#1a237e]">{lastSyncedInfo.totalCount} listings</strong></span>
-                  <span className="text-slate-300">•</span>
-                  <span>Channel: <strong className="text-indigo-700">{lastSyncedInfo.method === 'search_grounding' ? 'AI Search Grounding' : 'Source Direct'}</strong></span>
-                </div>
-              ) : (
-                <p className="text-[11px] font-bold text-slate-400 italic mt-2.5">
-                  No automated synchronizations run yet. Tap Sync below to fetch the latest notifications from the original web source.
-                </p>
-              )}
-            </div>
-
-            <div className="shrink-0">
-              <button
-                onClick={triggerSync}
-                disabled={syncRunning}
-                className={`w-full sm:w-auto relative flex items-center justify-center gap-2 px-6 py-3 border border-slate-200/50 rounded-xl text-xs sm:text-sm font-black transition-all select-none shadow-xs cursor-pointer ${
-                  syncRunning
-                    ? 'bg-slate-100 text-slate-400 border-none cursor-not-allowed'
-                    : 'bg-[#1a237e] hover:bg-[#1a237e]/90 text-white hover:shadow active:scale-97'
-                }`}
-              >
-                <RefreshCw className={`h-4 w-4 shrink-0 ${syncRunning ? 'animate-spin' : ''}`} />
-                <span>{syncRunning ? 'Parsing Web Source...' : 'Synchronize Live Data'}</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Sync status toast overlay element */}
-          {syncStatus && (
-            <div className={`mt-4 p-4 rounded-xl text-xs flex items-start gap-3 border font-semibold animate-fadeIn ${
-              syncStatus.type === 'success' 
-                ? 'bg-emerald-50 border-emerald-200 text-emerald-900' 
-                : 'bg-rose-50 border-rose-200 text-rose-900'
-            }`}>
-              {syncStatus.type === 'success' ? (
-                <CheckCircle className="h-5 w-5 text-emerald-600 shrink-0 mt-0.5" />
-              ) : (
-                <AlertCircle className="h-5 w-5 text-rose-600 shrink-0 mt-0.5" />
-              )}
-              <div className="flex-1">
-                <p className="font-extrabold">{syncStatus.type === 'success' ? 'Live Data Synchronized' : 'Notice'}</p>
-                <p className="mt-0.5 text-slate-600 text-[11px] leading-relaxed">{syncStatus.message}</p>
-              </div>
-              <button 
-                onClick={() => setSyncStatus(null)}
-                className="text-slate-400 hover:text-slate-600 select-none cursor-pointer"
-              >
-                ✕
-              </button>
-            </div>
-          )}
-        </div>
+        {/* Live Synchronization occurs automatically on website load */}
         
         {/* Fast Notification Banners for bookmarked exams */}
         {bookmarkedIds.length > 0 && (
@@ -820,16 +766,88 @@ export default function App() {
       </main>
 
       {/* Footer bar */}
-      <footer className="bg-white border-t border-gray-100 py-8 mt-16 text-center text-xs text-gray-400 font-semibold uppercase tracking-wider">
-        <div className="max-w-7xl mx-auto px-4 space-y-2">
-          <p>© 2026 Sarkari Result • Built with Antigravity AI Engine</p>
-          <div className="flex items-center justify-center gap-4 text-[10px] text-indigo-500 normal-case">
-            <a href="/sitemap.xml" target="_blank" rel="noopener noreferrer" className="hover:underline font-bold flex items-center gap-1">
-              <Globe className="h-3 w-3" />
-              Sitemap.xml (Google SEO Index)
-            </a>
+      <footer className="bg-slate-900 text-slate-400 py-12 mt-20 border-t-4 border-[#1a237e]">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8 border-b border-slate-800">
+            {/* Branding Column */}
+            <div className="space-y-3.5">
+              <div className="flex items-center space-x-2">
+                <span className="bg-[#1a237e] text-white font-black text-xs px-2.5 py-1 rounded-md">SR</span>
+                <span className="text-white font-black text-base tracking-tight">Sarkari Result™</span>
+                <span className="text-[10px] bg-slate-800 text-slate-300 font-extrabold px-1.5 py-0.5 rounded uppercase">Since 2009</span>
+              </div>
+              <p className="text-xs leading-relaxed text-slate-400 font-medium normal-case">
+                Official Website of Sarkari Result™ – <strong className="text-white font-bold">SarkariResult.com.cm</strong>.
+              </p>
+              <div className="text-[10px] text-slate-500 font-semibold uppercase leading-relaxed tracking-wider">
+                <div className="flex items-center gap-1.5 text-indigo-400 font-extrabold">
+                  <Award className="h-3.5 w-3.5 shrink-0" />
+                  <span>TRADEMARK REGISTERED STATUS</span>
+                </div>
+                <p className="mt-1 normal-case font-medium">
+                  Trademark Applications for &ldquo;Sarkari Result&rdquo; Accepted and Advertised by the Controller General of Patents, Designs and Trade Marks, Government of India, under Application Nos. <strong className="text-slate-300">6921399 (Class 35)</strong> and <strong className="text-slate-300">6921398 (Class 41)</strong>.
+                </p>
+              </div>
+            </div>
+
+            {/* Connect Column */}
+            <div className="space-y-4">
+              <h4 className="text-white text-xs font-black uppercase tracking-widest border-l-2 border-indigo-500 pl-2">Connect With Us</h4>
+              <div className="grid grid-cols-2 gap-2 text-xs font-semibold">
+                <a href="https://x.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Globe className="h-3.5 w-3.5" /></span>
+                  <span>Sarkari Result @X</span>
+                </a>
+                <a href="https://t.me" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Send className="h-3.5 w-3.5" /></span>
+                  <span>Sarkari Result @Telegram</span>
+                </a>
+                <a href="https://whatsapp.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Send className="h-3.5 w-3.5 text-emerald-400" /></span>
+                  <span>Sarkari Result @WhatsApp</span>
+                </a>
+                <a href="https://instagram.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Instagram className="h-3.5 w-3.5 text-pink-400" /></span>
+                  <span>Sarkari Result @Instagram</span>
+                </a>
+                <a href="https://facebook.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Facebook className="h-3.5 w-3.5 text-blue-400" /></span>
+                  <span>Sarkari Result @Facebook</span>
+                </a>
+                <a href="https://youtube.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 hover:text-white transition-colors normal-case">
+                  <span className="bg-slate-800 p-1.5 rounded-lg text-slate-300 hover:text-white"><Youtube className="h-3.5 w-3.5 text-rose-500" /></span>
+                  <span>Sarkari Result @YouTube</span>
+                </a>
+              </div>
+              <a href="#" className="flex items-center gap-2 text-xs font-semibold text-indigo-400 hover:text-indigo-300 mt-2 hover:underline normal-case">
+                <span className="bg-indigo-950 p-1.5 rounded-lg border border-indigo-900"><Smartphone className="h-3.5 w-3.5 text-indigo-400" /></span>
+                <span>Sarkari Result @Mobile App</span>
+              </a>
+            </div>
           </div>
-          <p className="mt-1 text-[10px] lowercase text-gray-300">Sarkari Result is a career assistance utility and is not affiliated with any government entities or recruitment agencies.</p>
+
+          {/* Legal Disclaimer Block */}
+          <div className="pt-8 space-y-6">
+            <div className="p-4 bg-slate-950/60 border border-slate-800/80 rounded-xl flex items-start gap-3">
+              <AlertCircle className="h-5 w-5 text-amber-500/80 shrink-0 mt-0.5" />
+              <div className="space-y-1.5">
+                <span className="text-[10px] font-black uppercase text-amber-500 tracking-wider">Legal Disclaimer & Safe Harbor</span>
+                <p className="text-[11px] text-slate-400 font-medium leading-relaxed normal-case">
+                  This website is not associated with official or Government websites. All information provided is for general informational purposes only and Users of our website can not use content for any legal purposes and it is hereby advised to all visitors to verify information from official notifications of concerning department before relying on it. If any errors are found in the uploaded content here on website, the website should to be notified through our contact us page.
+                </p>
+              </div>
+            </div>
+
+            {/* Final Copyright Line */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-500 pt-2 gap-4">
+              <div>
+                Copyright © 2009 - 2025 | <span className="text-slate-400 font-extrabold lowercase">SarkariResult.com.cm</span>
+              </div>
+              <div className="text-slate-400 font-black">
+                Sarkari Result™ ( Since 2009 )
+              </div>
+            </div>
+          </div>
         </div>
       </footer>
 

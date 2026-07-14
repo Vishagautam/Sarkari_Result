@@ -392,6 +392,147 @@ Only return the JSON array, no markdown wrapper codeblocks (i.e. do NOT use \`\`
   }
 });
 
+// 2.5. AI JOB SEARCH ENDPOINT (NATURAL LANGUAGE COGNITIVE SEARCH ENGINE)
+app.post("/api/ai-job-search", async (req, res) => {
+  try {
+    const { query } = req.body;
+    if (!query || typeof query !== "string" || !query.trim()) {
+      return res.status(400).json({ error: "Search query is required." });
+    }
+
+    const currentNotifications = await getNotifications();
+
+    let client;
+    try {
+      client = getGeminiClient();
+    } catch (err: any) {
+      console.log("No GEMINI_API_KEY. Using smart local keyword-match fallback...");
+      // Fallback local matching
+      const lowercaseQuery = query.toLowerCase();
+      const matched = currentNotifications
+        .filter((job: any) => job && (job.type === 'job' || job.type === 'admission'))
+        .map((job: any) => {
+          let score = 20;
+          let reason = "This vacancy matches general central/state eligibility standards.";
+          let nextStep = "Verify post qualification criteria and apply.";
+
+          const title = job.title.toLowerCase();
+          const auth = job.authority.toLowerCase();
+          const qual = job.qualification.toLowerCase();
+          const details = (job.details || "").toLowerCase();
+
+          if (lowercaseQuery.includes("railway") || lowercaseQuery.includes("rrb") || lowercaseQuery.includes("alp") || lowercaseQuery.includes("technician")) {
+            if (title.includes("railway") || auth.includes("railway") || title.includes("rrb") || auth.includes("rrb")) {
+              score += 50;
+              reason = "Matches your search for railway-sector employment opportunities.";
+              nextStep = "Prepare for Railway Recruitment Board (RRB) computer-based tests.";
+            }
+          }
+          if (lowercaseQuery.includes("ssc") || lowercaseQuery.includes("mts") || lowercaseQuery.includes("cgl") || lowercaseQuery.includes("chsl")) {
+            if (title.includes("ssc") || auth.includes("ssc") || details.includes("ssc")) {
+              score += 50;
+              reason = "Direct match for Staff Selection Commission (SSC) central department vacancies.";
+              nextStep = "Review SSC registration guidelines and syllabus details.";
+            }
+          }
+          if (lowercaseQuery.includes("police") || lowercaseQuery.includes("constable") || lowercaseQuery.includes("defense") || lowercaseQuery.includes("bsf")) {
+            if (title.includes("police") || title.includes("constable") || title.includes("bsf") || auth.includes("bsf") || auth.includes("police")) {
+              score += 50;
+              reason = "Aligned with your interest in military, defense, or law enforcement jobs.";
+              nextStep = "Check physical efficiency test criteria and age relaxation rules.";
+            }
+          }
+          if (lowercaseQuery.includes("graduate") || lowercaseQuery.includes("degree") || lowercaseQuery.includes("bachelor") || lowercaseQuery.includes("btech") || lowercaseQuery.includes("b.tech")) {
+            if (qual.includes("bachelor") || qual.includes("graduation") || qual.includes("degree") || qual.includes("graduate") || qual.includes("b.tech") || qual.includes("engineering")) {
+              score += 30;
+              reason = "Perfect match for your higher education / graduate qualification level.";
+              nextStep = "Ensure you have graduation certificates before applying.";
+            }
+          }
+          if (lowercaseQuery.includes("12") || lowercaseQuery.includes("12th") || lowercaseQuery.includes("intermediate") || lowercaseQuery.includes("10+2")) {
+            if (qual.includes("12") || qual.includes("10+2") || qual.includes("intermediate")) {
+              score += 35;
+              reason = "Tailored for Class 12th / intermediate pass candidates.";
+              nextStep = "Ensure you have intermediate marksheets before applying.";
+            }
+          }
+          if (lowercaseQuery.includes("10") || lowercaseQuery.includes("10th") || lowercaseQuery.includes("matric")) {
+            if (qual.includes("10") || qual.includes("matric")) {
+              score += 35;
+              reason = "Tailored for Class 10th / high school pass candidates.";
+              nextStep = "Verify high school certificate age limits and register.";
+            }
+          }
+
+          // Add word match weights
+          const queryWords = lowercaseQuery.split(/\s+/).filter(w => w.length > 3);
+          for (const word of queryWords) {
+            if (title.includes(word) || auth.includes(word) || qual.includes(word)) {
+              score += 15;
+            }
+          }
+
+          score = Math.min(score, 98);
+
+          return {
+            jobId: job.id,
+            relevanceScore: score,
+            reason,
+            recommendedNextStep: nextStep
+          };
+        })
+        .filter((m: any) => m.relevanceScore > 35)
+        .sort((a: any, b: any) => b.relevanceScore - a.relevanceScore)
+        .slice(0, 5);
+
+      return res.json({ matches: matched, isFallback: true });
+    }
+
+    // Call Gemini with the live jobs database
+    const systemInstruction = `
+You are the ultimate Sarkari AI Perfect Job Finder. Your goal is to analyze the candidate's natural language request (skills, background, qualifications, interests, or age) and discover the absolute perfect matches from our live government job database.
+
+User's Request: "${query}"
+
+Sarkari Job Database:
+${JSON.stringify(currentNotifications.filter((d: any) => d && (d.type === 'job' || d.type === 'admission')), null, 2)}
+
+Instructions:
+1. Thoroughly match the user's background/skills/desires with the educational eligibility, pay scale salary, authority type, and registration windows in the database.
+2. Select the top best matching jobs (up to 5 jobs).
+3. Return a response in a structured JSON object:
+   {
+     "matches": [
+       {
+         "jobId": "exact string ID from the database",
+         "relevanceScore": 85, // number from 0 to 100
+         "reason": "1-2 sentence explanation of why this job matches their specific query",
+         "recommendedNextStep": "clear actionable next step"
+       }
+     ]
+   }
+4. Do NOT output any markdown blocks (like \`\`\`json). Return ONLY the raw JSON object.
+`;
+
+    const response = await client.models.generateContent({
+      model: "gemini-3.5-flash",
+      contents: "Match the user's natural language search with the available jobs and return the JSON object with matches.",
+      config: {
+        systemInstruction,
+        responseMimeType: "application/json",
+      }
+    });
+
+    const parsedText = response.text ? response.text.trim() : "{\"matches\":[]}";
+    const parsedData = JSON.parse(parsedText);
+    res.json({ matches: parsedData.matches || [], isFallback: false });
+
+  } catch (error: any) {
+    console.error("AI Job Search API Error:", error);
+    res.status(500).json({ error: "Internal Server Error", details: error.message });
+  }
+});
+
 // 3. GET NOTIFICATIONS ENDPOINT
 app.get("/api/notifications", async (req, res) => {
   try {
@@ -410,8 +551,8 @@ app.post("/api/sync", async (req, res) => {
   let syncMethod = "direct";
 
   try {
-    // Try sarkariresultgovt.online first, with fallback to sarkariresult.com.cm
-    let targetUrl = "https://sarkariresultgovt.online/";
+    // Try sarkariresult.com.cm first as requested, with fallback to sarkariresultgovt.online
+    let targetUrl = "https://sarkariresult.com.cm/";
     console.log(`Attempting direct fetch of ${targetUrl}...`);
     let fetchResponse;
     try {
@@ -426,8 +567,8 @@ app.post("/api/sync", async (req, res) => {
         throw new Error(`Status ${fetchResponse.status}`);
       }
     } catch (err: any) {
-      console.log(`Failed to fetch from ${targetUrl}: ${err.message}. Trying fallback to sarkariresult.com.cm...`);
-      targetUrl = "https://sarkariresult.com.cm/";
+      console.log(`Failed to fetch from primary target ${targetUrl}: ${err.message}. Trying fallback to sarkariresultgovt.online...`);
+      targetUrl = "https://sarkariresultgovt.online/";
       fetchResponse = await fetch(targetUrl, {
         headers: {
           "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",

@@ -1,45 +1,52 @@
 import React, { useState } from 'react';
-import { HelpCircle, ChevronDown, ChevronUp, FileText, CheckCircle2, AlertTriangle, CreditCard, ShieldAlert } from 'lucide-react';
+import { HelpCircle, ChevronDown, ChevronUp, FileText, CheckCircle2, AlertTriangle, CreditCard, ShieldAlert, Globe, Sparkles } from 'lucide-react';
 
 interface FaqItem {
   id: string;
-  category: 'submission' | 'verification';
+  category: 'official' | 'submission' | 'verification';
   question: string;
   answer: string;
   icon: React.ReactNode;
 }
 
 export default function SidebarFaq() {
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedId, setExpandedId] = useState<string | null>('faq-what-is');
 
   const faqs: FaqItem[] = [
+    {
+      id: 'faq-what-is',
+      category: 'official',
+      question: 'What is Sarkari Result?',
+      answer: 'Sarkari Result : Find Latest Sarkari Job Vacancies And Sarkari Exam Results At Sarkariresult.Com.Cm. Get All The Information You Need On Govt Jobs And Online Form, Exam, Results, Admit Card In One Place.',
+      icon: <Sparkles className="h-4 w-4 text-indigo-600 shrink-0 mt-0.5" />
+    },
+    {
+      id: 'faq-official-web',
+      category: 'official',
+      question: 'What is the official website of Sarkari Result?',
+      answer: 'Sarkariresult.com.cm is the official website of Sarkari Result since 2009.',
+      icon: <Globe className="h-4 w-4 text-blue-600 shrink-0 mt-0.5" />
+    },
+    {
+      id: 'faq-check-jobs',
+      category: 'official',
+      question: 'How can I check the latest government job vacancies?',
+      answer: 'You can visit our official Sarkari Result website which is sarkariresult.com.cm and navigate to the “Latest Jobs” section to check the latest government job vacancies.',
+      icon: <FileText className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+    },
     {
       id: 'faq-correction',
       category: 'submission',
       question: 'How to fix spelling or DOB errors in submitted forms?',
-      answer: 'Most recruitment boards (SSC, UPSC, RRB) open a dedicated "Correction Window" 3–5 days after online registration closes. If mistakes persist, email the official support team with your registration ID immediately. Do not submit double registrations, as they may lead to automatic disqualification.',
-      icon: <FileText className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+      answer: 'Most recruitment boards (SSC, UPSC, RRB) open a dedicated "Correction Window" 3–5 days after online registration closes. If mistakes persist, email the official support team with your registration ID immediately.',
+      icon: <AlertTriangle className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
     },
     {
       id: 'faq-payment',
       category: 'submission',
       question: 'Money debited but payment status is still pending?',
-      answer: 'Do not make a secondary payment immediately! Server-side synchronization often takes 24 to 48 hours. Log out and log back in to review the status, or check the bank verification status using your bank transaction reference ID in the recruitment portal.',
+      answer: 'Do not make a secondary payment immediately! Server-side synchronization often takes 24 to 48 hours. Log out and log back in to review the status, or check the bank verification status using your bank transaction reference ID.',
       icon: <CreditCard className="h-4 w-4 text-indigo-500 shrink-0 mt-0.5" />
-    },
-    {
-      id: 'faq-aadhaar',
-      category: 'verification',
-      question: 'Is e-Aadhaar card accepted for Document Verification?',
-      answer: 'Yes, printed e-Aadhaar with a verified QR code is fully accepted at document verification centers. However, your name, parentage, and Date of Birth (DOB) must match your Matriculation (Class 10th) mark sheet and official certificate exactly.',
-      icon: <CheckCircle2 className="h-4 w-4 text-emerald-500 shrink-0 mt-0.5" />
-    },
-    {
-      id: 'faq-caste',
-      category: 'verification',
-      question: 'What is the format validity for OBC-NCL/EWS certificates?',
-      answer: 'OBC (Non-Creamy Layer) and EWS certificates must be validated for the current financial year and must adhere to the prescribed Central Government format (often provided in the notification annexures) rather than simple state formats.',
-      icon: <ShieldAlert className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
     }
   ];
 
@@ -104,8 +111,10 @@ export default function SidebarFaq() {
                 </p>
                 <div className="mt-2 flex items-center justify-between">
                   <span className={`text-[9px] font-black uppercase px-2 py-0.5 rounded-md ${
-                    faq.category === 'submission' 
-                      ? 'bg-amber-50 text-amber-700 border border-amber-100' 
+                    faq.category === 'official'
+                      ? 'bg-indigo-50 text-indigo-700 border border-indigo-100'
+                      : faq.category === 'submission'
+                      ? 'bg-amber-50 text-amber-700 border border-amber-100'
                       : 'bg-emerald-50 text-emerald-700 border border-emerald-100'
                   }`}>
                     {faq.category}
