@@ -1,5 +1,5 @@
 import React from 'react';
-import { Search, Flame, Bot, Smartphone } from 'lucide-react';
+import { Search, Flame, Bot, Smartphone, Mic, MicOff } from 'lucide-react';
 
 interface HeaderProps {
   searchQuery: string;
@@ -11,6 +11,75 @@ interface HeaderProps {
 
 export default function Header({ searchQuery, setSearchQuery, onOpenAiMitra, activeTab, onTabChange }: HeaderProps) {
   const [showDropdown, setShowDropdown] = React.useState(false);
+  const [isListening, setIsListening] = React.useState(false);
+  const [speechError, setSpeechError] = React.useState<string | null>(null);
+  const [speechSupported, setSpeechSupported] = React.useState(true);
+  const recognitionRef = React.useRef<any>(null);
+
+  React.useEffect(() => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      setSpeechSupported(false);
+    }
+  }, []);
+
+  const toggleListening = () => {
+    const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Voice Search is not supported on this browser. Please try Google Chrome or Microsoft Edge.");
+      return;
+    }
+
+    if (isListening) {
+      if (recognitionRef.current) {
+        recognitionRef.current.stop();
+      }
+      setIsListening(false);
+      return;
+    }
+
+    try {
+      const recognition = new SpeechRecognition();
+      recognition.continuous = false;
+      recognition.interimResults = false;
+      // 'en-IN' is excellent for recognizing typical English/Hindi blended recruitment queries in India
+      recognition.lang = 'en-IN'; 
+
+      recognition.onstart = () => {
+        setIsListening(true);
+        setSpeechError(null);
+      };
+
+      recognition.onerror = (event: any) => {
+        console.error('Speech recognition error', event.error);
+        if (event.error === 'not-allowed') {
+          setSpeechError("Microphone permission denied.");
+        } else {
+          setSpeechError(`Voice Error: ${event.error}`);
+        }
+        setIsListening(false);
+      };
+
+      recognition.onend = () => {
+        setIsListening(false);
+      };
+
+      recognition.onresult = (event: any) => {
+        const transcript = event.results[0][0].transcript;
+        if (transcript) {
+          setSearchQuery(transcript);
+          onTabChange('home');
+          setShowDropdown(true);
+        }
+      };
+
+      recognitionRef.current = recognition;
+      recognition.start();
+    } catch (err: any) {
+      console.error(err);
+      setIsListening(false);
+    }
+  };
 
   const trendingKeywords = [
     { text: 'SSC GD Constable', tab: 'results', searchTerm: 'SSC GD', label: 'Result' },
@@ -120,24 +189,93 @@ export default function Header({ searchQuery, setSearchQuery, onOpenAiMitra, act
 
           {/* Search Box on red nav with absolute quick-search dropdown container */}
           <div className="w-full sm:w-64 py-2 sm:py-0 pb-3 sm:pb-0 relative z-50">
-            <div className="relative">
+            <div className="relative flex items-center">
               <span className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
                 <Search className="h-3.5 w-3.5 text-red-300" />
               </span>
               <input
                 id="search-input"
                 type="text"
-                placeholder="Search recruitment portals..."
+                placeholder={isListening ? "Listening... Speak now!" : "Search recruitment portals..."}
                 value={searchQuery}
                 onChange={(e) => {
                   setSearchQuery(e.target.value);
                   setShowDropdown(true);
                 }}
                 onFocus={() => setShowDropdown(true)}
-                onBlur={() => setShowDropdown(false)}
-                className="block w-full pl-9 pr-3 py-1.5 border border-red-700 rounded-md text-xs bg-red-800/50 text-white placeholder:text-red-200/70 focus:outline-none focus:ring-1 focus:ring-white focus:bg-red-900/50 transition-all"
+                onBlur={() => {
+                  // Small delay to allow clicking search dropdown options before blur closes them
+                  setTimeout(() => setShowDropdown(false), 200);
+                }}
+                className={`block w-full pl-9 pr-9 py-1.5 border border-red-700 rounded-md text-xs transition-all ${
+                  isListening 
+                    ? 'bg-red-900 border-white text-white placeholder:text-white/80 ring-2 ring-white font-extrabold animate-pulse'
+                    : 'bg-red-800/50 text-white placeholder:text-red-200/70 focus:outline-none focus:ring-1 focus:ring-white focus:bg-red-900/50'
+                }`}
               />
+              
+              {/* Voice search button inside the input element on the right */}
+              {speechSupported && (
+                <button
+                  type="button"
+                  id="voice-search-btn"
+                  onClick={toggleListening}
+                  className={`absolute right-1 p-1 rounded-md transition-all duration-300 flex items-center justify-center select-none ${
+                    isListening 
+                      ? 'bg-white text-red-600 shadow-md scale-110' 
+                      : 'text-red-200 hover:text-white hover:bg-red-700/50 cursor-pointer'
+                  }`}
+                  title="Search by voice"
+                >
+                  {isListening ? (
+                    <Mic className="h-3.5 w-3.5 animate-bounce" />
+                  ) : (
+                    <Mic className="h-3.5 w-3.5" />
+                  )}
+                </button>
+              )}
             </div>
+
+            {/* Dynamic Status Feedback for Speech Recognition */}
+            {isListening && (
+              <div 
+                id="voice-search-status-tooltip"
+                className="absolute right-0 left-0 top-full mt-2 bg-slate-950 border border-slate-800 text-white rounded-xl shadow-2xl p-3 z-[60] flex flex-col items-center gap-2 animate-fadeIn"
+              >
+                <div className="flex items-center gap-2">
+                  <span className="relative flex h-2 w-2">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-2 w-2 bg-red-500"></span>
+                  </span>
+                  <span className="text-[9px] font-black uppercase tracking-wider text-slate-300">Listening... Speak Now</span>
+                </div>
+                <p className="text-[10px] text-slate-400 text-center font-bold">
+                  Try speaking: &quot;Railway recruitment&quot; or &quot;SSC GD Constable result&quot;
+                </p>
+                {/* Audio wave indicator */}
+                <div className="flex gap-1 items-end justify-center h-4 mt-1">
+                  <span className="w-1 bg-red-500 rounded-full animate-pulse h-3"></span>
+                  <span className="w-1 bg-red-400 rounded-full animate-pulse h-4"></span>
+                  <span className="w-1 bg-red-500 rounded-full animate-pulse h-2"></span>
+                  <span className="w-1 bg-red-400 rounded-full animate-pulse h-3"></span>
+                </div>
+              </div>
+            )}
+
+            {speechError && (
+              <div 
+                id="voice-search-error-tooltip"
+                className="absolute right-0 left-0 top-full mt-2 bg-red-950 border border-red-800 text-red-200 rounded-xl shadow-2xl p-2.5 z-[60] text-center text-[10px] font-bold leading-relaxed animate-fadeIn"
+              >
+                <p>{speechError}</p>
+                <button 
+                  onClick={() => setSpeechError(null)}
+                  className="mt-1 text-[9px] font-black uppercase tracking-wider text-white hover:underline cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+            )}
 
             {/* Quick-Search dropdown menu absolute card */}
             {showDropdown && displayKeywords.length > 0 && (

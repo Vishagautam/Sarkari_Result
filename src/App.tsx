@@ -8,9 +8,10 @@ import AiAssistant from './components/AiAssistant';
 import NotificationDetailModal from './components/NotificationDetailModal';
 import SidebarFaq from './components/SidebarFaq';
 import GoogleAd from './components/GoogleAd';
+import ComplianceModal from './components/ComplianceModal';
 import { SARKARI_DATA } from './data/sarkariData';
 import { EligibilityProfile, SarkariNotification } from './types';
-import { Bookmark, Sparkles, AlertCircle, HelpCircle, GraduationCap, Calendar, ShieldCheck, RefreshCw, CheckCircle, Wifi, Globe, Send, Instagram, Facebook, Youtube, Smartphone, Award } from 'lucide-react';
+import { Bookmark, Sparkles, AlertCircle, HelpCircle, GraduationCap, Calendar, ShieldCheck, RefreshCw, CheckCircle, Wifi, Globe, Send, Instagram, Facebook, Youtube, Smartphone, Award, FileText, Info, Mail, AlertTriangle } from 'lucide-react';
 
 export default function App() {
   const [activeTab, setActiveTab] = useState('home');
@@ -22,6 +23,7 @@ export default function App() {
   const [jobs, setJobs] = useState<SarkariNotification[]>(SARKARI_DATA);
   const [syncRunning, setSyncRunning] = useState(false);
   const [syncStatus, setSyncStatus] = useState<{ type: 'success' | 'error', message: string } | null>(null);
+  const [complianceTab, setComplianceTab] = useState<'privacy' | 'terms' | 'about' | 'contact' | 'disclaimer' | null>(null);
   const [lastSyncedInfo, setLastSyncedInfo] = useState<{
     method: string;
     addedCount: number;
@@ -768,7 +770,7 @@ export default function App() {
       {/* Footer bar */}
       <footer className="bg-slate-900 text-slate-400 py-12 mt-20 border-t-4 border-[#1a237e]">
         <div className="max-w-7xl mx-auto px-4 sm:px-6">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 pb-8 border-b border-slate-800">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-8 pb-8 border-b border-slate-800">
             {/* Branding Column */}
             <div className="space-y-3.5">
               <div className="flex items-center space-x-2">
@@ -824,6 +826,51 @@ export default function App() {
                 <span>Sarkari Result @Mobile App</span>
               </a>
             </div>
+
+            {/* Compliance & Legal Column */}
+            <div className="space-y-4">
+              <h4 className="text-white text-xs font-black uppercase tracking-widest border-l-2 border-indigo-500 pl-2">Legal & Support</h4>
+              <p className="text-xs leading-relaxed text-slate-400 normal-case">
+                Access official trademark compliance documents, data privacy safety terms, cookie declarations, and support desks.
+              </p>
+              <div className="flex flex-col gap-2.5 text-xs font-bold pt-1.5">
+                <button
+                  onClick={() => setComplianceTab('privacy')}
+                  className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-left cursor-pointer transition-colors"
+                >
+                  <ShieldCheck className="h-4 w-4 shrink-0 text-indigo-500" />
+                  <span>Privacy Policy (AdSense Compliant)</span>
+                </button>
+                <button
+                  onClick={() => setComplianceTab('terms')}
+                  className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-left cursor-pointer transition-colors"
+                >
+                  <FileText className="h-4 w-4 shrink-0 text-indigo-500" />
+                  <span>Terms and Conditions</span>
+                </button>
+                <button
+                  onClick={() => setComplianceTab('about')}
+                  className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-left cursor-pointer transition-colors"
+                >
+                  <Info className="h-4 w-4 shrink-0 text-indigo-500" />
+                  <span>About Us / Mission Since 2009</span>
+                </button>
+                <button
+                  onClick={() => setComplianceTab('contact')}
+                  className="flex items-center gap-2 text-indigo-400 hover:text-indigo-300 text-left cursor-pointer transition-colors"
+                >
+                  <Mail className="h-4 w-4 shrink-0 text-indigo-500" />
+                  <span>Contact Our Technical Desk</span>
+                </button>
+                <button
+                  onClick={() => setComplianceTab('disclaimer')}
+                  className="flex items-center gap-2 text-amber-400 hover:text-amber-300 text-left cursor-pointer transition-colors animate-pulse"
+                >
+                  <AlertTriangle className="h-4 w-4 shrink-0 text-amber-500" />
+                  <span>Disclaimer / Non-Affiliation</span>
+                </button>
+              </div>
+            </div>
           </div>
 
           {/* Legal Disclaimer Block */}
@@ -875,6 +922,14 @@ export default function App() {
               prev.includes(id) ? prev.filter(item => item !== id) : [...prev, id]
             );
           }}
+        />
+      )}
+
+      {/* Compliance / AdSense legal modal */}
+      {complianceTab && (
+        <ComplianceModal
+          initialTab={complianceTab}
+          onClose={() => setComplianceTab(null)}
         />
       )}
 
